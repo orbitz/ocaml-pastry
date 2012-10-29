@@ -1,0 +1,12 @@
+*~
+*.o
+*.a
+*.cmo
+*.cmi
+*.cmx
+*.cmxa
+
+# Intermediates
+._d/
+._ncdi/
+.deps
