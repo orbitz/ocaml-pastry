@@ -4,8 +4,8 @@ open Async.Std
 module type APP = sig
   type t
 
-  val deliver  : t -> Message.t -> Key.t -> Message.t list Deferred.t
-  val forward  : t -> Message.t -> Key.t -> Node.t -> Message.t Deferred.t
+  val deliver  : t -> Message.t -> unit Deferred.t
+  val forward  : t -> Message.t -> Node.t -> Message.t option Deferred.t
   val new_leaf : t -> Leaf_set.t -> unit Deferred.t
 end
 
@@ -13,7 +13,7 @@ module type IO = sig
   type t
 
   val read  : t -> Event.t Deferred.t
-  val write : t -> Node.t -> Message.t -> (unit, Write_error.t) Result.t Deferred.t
+  val write : t -> Message.t -> (unit, Write_error.t) Result.t Deferred.t
 end
 
 module Make : functor (App : APP) -> functor (Io : IO) -> sig
