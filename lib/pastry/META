@@ -1,0 +1,6 @@
+name="pastry"
+version="0.0.0"
+description="Pastry Implementation"
+requires="core"
+archive(byte)="pastry.cma"
+archive(native)="pastry.cmxa"
