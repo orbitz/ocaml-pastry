@@ -1,12 +1,11 @@
 *~
-*.o
+*.cma
 *.a
+*.cmxa
 *.cmo
 *.cmi
 *.cmx
-*.cmxa
-
-# Intermediates
-._d/
-._ncdi/
-.deps
+*.o
+*.native
+*.byte
+.d
