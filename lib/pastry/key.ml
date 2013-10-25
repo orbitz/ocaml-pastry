@@ -19,8 +19,8 @@ let masks = [| 255 land (lnot 255) (* 00000000 *)
 	    |]
 
 let compare = String.compare
-let of_string s = failwith "nyi"
-let to_string t = t
+let of_hexstring s = failwith "nyi"
+let to_hexstring t = t
 
 let count_prefix_bits c1 c2 =
   let rec count_prefix_bits' = function

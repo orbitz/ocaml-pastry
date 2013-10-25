@@ -3,7 +3,7 @@ PACK=pastry
 OCAMLC_OPTS=-package core
 OCAMLOPT_OPTS=$(OCAMLC_OPTS)
 
-LIB_MODULES=key.ml
+LIB_MODULES=hexstring.ml key.ml
 NON_LIB_MODULES=
 
 BYTE_TARGETS=pastry.cma
