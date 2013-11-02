@@ -1,2 +1,55 @@
 * About
-Template for my usual ocaml projects
+PASTRY is a DHT.
+* Features
+** TODO Key representation
+Keys are 128 bit numeric value.
+
+Operations:
+- Relational comparison
+- Common prefix digits given a particular base (1 <= b <= 8 for now)
+** TODO Routing table
+Represents a table of nodes that the algorithm can route traffic to.  Each entry
+in the table corresponds to a number of nodes.
+
+The routing table two dimensional where the columns are the numeration of the
+digits in the base the node id is represented in and the rows are the digits of
+the node id.
+
+Given a base4 node id of 10233102, a hypothetical routing table would be:
+
+|--------+-----+----------+----------+----------+----------|
+| NodeId | Pos |        0 |        1 |        2 |        3 |
+|--------+-----+----------+----------+----------+----------|
+|      1 |   0 | 02212102 |      (1) | 22301203 | 31203203 |
+|      0 |   1 |      (0) | 11301233 | 12230203 | 13021022 |
+|      2 |   2 | 10031203 | 10132102 |      (2) | 10323302 |
+|      3 |   3 | 10200230 | 10211302 | 10222302 |      (3) |
+|      3 |   4 | 10230322 | 10231000 | 10232121 |      (3) |
+|      1 |   5 | 10233001 |      (1) | 10233232 |          |
+|      0 |   6 |      (0) |          | 10233120 |          |
+|      2 |   7 |          |          |      (2) |          |
+|--------+-----+----------+----------+----------+----------|
+
+Operations:
+- Add a (nodeid, key)
+- Delete a nodeid
+- Query a list of hosts given a key
+** TODO Neighbor hood set
+Unclear if this is needed, looks like later versions of pastry remove this
+** TODO Leaf set
+The leaf set is an even number with value L.  Half the leaf set is devoted to
+nodes whose value is smaller than the current nodeid and half devoted to larger.
+
+Common values or 2^b or 2 x 2^b
+
+NodeId 10233102
+
+|----------+----------+----------+----------|
+|  Smaller |  Smaller |   Larger |   Larger |
+|----------+----------+----------+----------|
+| 10233033 | 10233021 | 10233120 | 10233122 |
+| 10233001 | 10233000 | 10233230 | 10233232 |
+|----------+----------+----------+----------|
+
+The table is just for visualizing it and the actual rows do not matter, just
+that half of it is composed of nodes smaller and half of nodes larger.
