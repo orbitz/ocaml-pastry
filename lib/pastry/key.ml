@@ -18,9 +18,15 @@ let masks = [| 255 land (lnot 255) (* 00000000 *)
             ;  255 land (lnot 0)   (* 11111111 *)
 	    |]
 
+let of_string s =
+  if String.length s = (128 / bits_per_char) then
+    Some s
+  else
+    None
+
+let to_string t = t
+
 let compare = String.compare
-let of_hexstring s = failwith "nyi"
-let to_hexstring t = t
 
 let count_prefix_bits c1 c2 =
   let rec count_prefix_bits' = function
@@ -48,5 +54,5 @@ let rec count_bits n t1 t2 =
     (n * bits_per_char +
        count_prefix_bits (Char.to_int c1) (Char.to_int c2))
 
-let common_prefix t1 t2 =
-  count_bits 0 t1 t2
+let prefix ~b t1 t2 =
+  (count_bits 0 t1 t2)/b
