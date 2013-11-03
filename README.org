@@ -1,7 +1,7 @@
 * About
 PASTRY is a DHT.
 * Features
-** TODO Key representation
+** DONE Key representation
 Keys are 128 bit numeric value.
 
 Operations:
