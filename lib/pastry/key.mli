@@ -6,7 +6,8 @@
  *)
 type t
 
-val compare       : t           -> t -> int
-val of_hexstring  : Hexstring.t ->      t option
-val to_hexstring  : t           ->      Hexstring.t
-val common_prefix : t           -> t -> int
+val of_string : string -> t option
+val to_string : t      -> string
+
+val compare   : t      -> t -> int
+val prefix    : b:int  -> t -> t -> int

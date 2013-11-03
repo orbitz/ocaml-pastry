@@ -34,7 +34,7 @@ Operations:
 - Add a (nodeid, key)
 - Delete a nodeid
 - Query a list of hosts given a key
-** TODO Neighbor hood set
+** TODO Neighborhood set
 Unclear if this is needed, looks like later versions of pastry remove this
 ** TODO Leaf set
 The leaf set is an even number with value L.  Half the leaf set is devoted to

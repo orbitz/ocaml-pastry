@@ -7,6 +7,10 @@ type t = string
  *)
 let bits_per_char = 8
 
+let total_bits = 128
+
+let num_char = total_bits / bits_per_char
+
 let masks = [| 255 land (lnot 255) (* 00000000 *)
 	    ;  255 land (lnot 127) (* 10000000 *)
 	    ;  255 land (lnot 63)  (* 11000000 *)
@@ -18,9 +22,15 @@ let masks = [| 255 land (lnot 255) (* 00000000 *)
             ;  255 land (lnot 0)   (* 11111111 *)
 	    |]
 
+let of_string s =
+  if String.length s = num_char then
+    Some (String.copy s)
+  else
+    None
+
+let to_string = String.copy
+
 let compare = String.compare
-let of_hexstring s = failwith "nyi"
-let to_hexstring t = t
 
 let count_prefix_bits c1 c2 =
   let rec count_prefix_bits' = function
@@ -29,7 +39,7 @@ let count_prefix_bits c1 c2 =
       if (c1 land mask) = (c2 land mask) then
 	count_prefix_bits' (n + 1)
       else
-	n - 1
+	n
     | n ->
       n
   in
@@ -37,16 +47,21 @@ let count_prefix_bits c1 c2 =
    * Every byte always has 0 bits in common, so
    * start at 1
    *)
-  count_prefix_bits' 1
+  (count_prefix_bits' 1) - 1
 
 let rec count_bits n t1 t2 =
-  let c1 = t1.[n] in
-  let c2 = t2.[n] in
-  if c1 = c2 then
-    count_bits (n + 1) t1 t2
+  if n < num_char then begin
+    let c1 = t1.[n] in
+    let c2 = t2.[n] in
+    if c1 = c2 then
+      count_bits (n + 1) t1 t2
+    else begin
+      (n * bits_per_char +
+	 count_prefix_bits (Char.to_int c1) (Char.to_int c2))
+    end
+  end
   else
-    (n * bits_per_char +
-       count_prefix_bits (Char.to_int c1) (Char.to_int c2))
+    total_bits
 
-let common_prefix t1 t2 =
-  count_bits 0 t1 t2
+let prefix ~b t1 t2 =
+  (count_bits 0 t1 t2)/b
