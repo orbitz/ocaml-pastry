@@ -1,6 +1,11 @@
-type t = { node_id  : string
-	 ; location : string
-	 }
+type 'a t
 
-val node_id  : t -> string
-val location : t -> string
+val create :
+  distance:int ->
+  k:Key.t ->
+  'a ->
+  'a t
+
+val distance : 'a t -> int
+val key      : 'a t -> Key.t
+val of_t     : 'a t -> 'a
