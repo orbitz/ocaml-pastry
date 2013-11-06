@@ -17,8 +17,8 @@ key_tests.native: key_tests.cmx
 key_tests.byte: key_tests.cmo
 
 test: byte-code native-code
-	./base_tests.native
-	./base_tests.byte
+	./key_tests.native
+	./key_tests.byte
 
 # Dependencies
 include ../lib/Ocamlrules.mk.in
