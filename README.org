@@ -25,7 +25,7 @@ The routing table two dimensional where the columns are the numeration of the
 digits in the base the node id is represented in and the rows are the digits of
 the node id.
 
-Given a base4 node id of 10233102, a hypothetical routing table would be:
+Given a base = 4 node id of 10233102, a hypothetical routing table would be:
 
 |--------+-----+----------+----------+----------+----------|
 | NodeId | Pos |        0 |        1 |        2 |        3 |

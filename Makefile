@@ -10,7 +10,6 @@ test:
 	./env_trampoline test_trampoline
 
 test_trampoline: all
-	$(MAKE) -C lib test
 	$(MAKE) -C tests test
 
 examples:

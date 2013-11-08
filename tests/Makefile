@@ -2,23 +2,11 @@ CAMLP4=
 OCAMLC_OPTS=-package pastry,oUnit
 OCAMLOPT_OPTS=$(OCAMLC_OPTS)
 
-LIB_MODULES=
-NON_LIB_MODULES=key_tests.ml
+TEST_MODULES=key_tests.ml hexstring_tests.ml routing_table_tests.ml node_tests.ml
 
-BYTE_TARGETS=$(NON_LIB_MODULES:%.ml=%.byte)
-NATIVE_TARGETS=$(NON_LIB_MODULES:%.ml=%.native)
+.PHONY: all test
 
-.PHONY: all install test
-
-all: byte-code native-code
-
-key_tests.native: key_tests.cmx
-
-key_tests.byte: key_tests.cmo
-
-test: byte-code native-code
-	./key_tests.native
-	./key_tests.byte
+all: test
 
 # Dependencies
 include ../lib/Ocamlrules.mk.in
