@@ -65,9 +65,24 @@ let test_key_lookup_notfound1 () =
     None
     (Pastry.Routing_table.lookup ~k:search rt)
 
+let test_nodes () =
+  let me_hash = "0123456789abcdef0123456789abcdef" in
+  let me = to_key me_hash in
+  let node_hash = String.copy me_hash in
+  node_hash.[0] <- '1';
+  let node = Pastry.Node.create ~distance:0 ~k:(to_key node_hash) () in
+  let rt   =
+    Pastry.Routing_table.create ~me ~b:4
+    |> Pastry.Routing_table.add ~node
+  in
+  assert_equal
+    1
+    (List.length (Pastry.Routing_table.nodes rt))
+
 let suite = "Pastry Base Tests"  >:::
   [ "Routing Table: Lookup Found 1"     >:: (test_key_lookup_found1)
   ; "Routing Table: Lookup Not Found 1" >:: (test_key_lookup_notfound1)
+  ; "Routing Table: Nodes"              >:: (test_nodes)
   ]
 
 let _ = run_test_tt_main suite
