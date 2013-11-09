@@ -53,6 +53,10 @@ test-byte-code: $(test_byte)
 
 test-native-code: $(test_native)
 
+$(test_native_cmx): $(TEST_DEPS)
+
+$(test_byte_cmo): $(TEST_DEPS)
+
 test: $(test_byte) $(test_native)
 	for test in $^ ; do \
 	  ./$$test ; \
@@ -98,7 +102,6 @@ endif
 	ocamlfind ocamldep $(OCAMLOPT_OPTS) -sort $(patsubst %.cmo,%.ml,$^)))
 
 %.byte_test: %.cmo
-	echo foo $(patsubst %.byte_test,%.cmo,$@)
 	ocamlfind ocamlc $(OCAMLC_OPTS) -thread -custom -linkpkg -g -o $@ \
 	$(patsubst %.byte_test,%.cmo,$@)
 
