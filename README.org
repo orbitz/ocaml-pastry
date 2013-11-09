@@ -7,6 +7,7 @@ Keys are 128 bit numeric value.
 Operations:
 - Relational comparison
 - Common prefix digits given a particular base (1 <= b <= 8 for now)
+- Find the closest between two nodes
 ** DONE Node
 A node represents an abstract location.
 
