@@ -31,3 +31,8 @@ let remove ~k t =
 let lookup ~k t =
   Routing_table.find t.table (prefix_digit ~me:t.me t.b k)
 
+let nodes t =
+  Routing_table.fold
+    ~f:(fun ~key ~data acc -> data::acc)
+    ~init:[]
+    t.table
