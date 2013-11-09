@@ -7,7 +7,7 @@ Keys are 128 bit numeric value.
 Operations:
 - Relational comparison
 - Common prefix digits given a particular base (1 <= b <= 8 for now)
-** TODO Node
+** DONE Node
 A node represents an abstract location.
 
 A node is created and manipulated by the IO layer.
@@ -17,7 +17,7 @@ Nodes have a strict ordering between them.
 Operations:
 - distance - Give the distance to the node
 - key - Key representation of the node
-** TODO Routing table
+** DONE Routing table
 Represents a table of nodes that the algorithm can route traffic to.  Each entry
 in the table corresponds to a number of nodes.
 
@@ -44,6 +44,7 @@ Operations:
 - Add a (nodeid, key)
 - Delete by key
 - Query a list of hosts given a key
+- Get a list of all the nodes
 ** TODO Neighborhood set
 Unclear if this is needed, looks like later versions of pastry remove this
 ** TODO Leaf set
