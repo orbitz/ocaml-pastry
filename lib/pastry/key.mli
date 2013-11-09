@@ -12,3 +12,4 @@ val to_string : t      -> string
 val compare   : t      -> t   -> int
 val prefix    : b:int  -> t   -> t -> int
 val digit     : b:int  -> int -> t -> int
+val closest   : t      -> (t * t)  -> t
