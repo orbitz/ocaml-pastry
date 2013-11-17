@@ -12,9 +12,8 @@ let to_key hash =
 	  (Pastry.Hexstring.decode hash)))
 
 let test_node_create () =
-  let decoded = Option.value_exn (Pastry.Hexstring.decode me_hash) in
-  let key     = Option.value_exn (Pastry.Key.of_string decoded) in
-  let node    = Pastry.Node.create ~distance:0 ~k:key () in
+  let key  = to_key me_hash in
+  let node = Pastry.Node.create ~distance:0 ~k:key () in
   assert_equal
     ~cmp:key_compare
     key
