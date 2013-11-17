@@ -49,6 +49,13 @@ let digit ~b pos t =
   (Char.to_int t.[pos_str]) lsl 16 + (Char.to_int t.[pos_str + 1])
 
 let closest k (t1, t2) =
+  (* Guarantees lowest is returned if k is equidistant from t1, t2 *)
+  let (t1, t2) =
+    if compare t1 t2 < 0 then
+      (t1, t2)
+    else
+      (t2, t1)
+  in
   (*
    * The semantics of this function is finding which of
    * t1 or t2 satisfy min(abs(k - t1), abs(k - t2))
