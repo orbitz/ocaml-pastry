@@ -3,7 +3,7 @@ PACK=pastry
 OCAMLC_OPTS=-package core,sexplib.syntax,comparelib.syntax -syntax camlp4o
 OCAMLOPT_OPTS=$(OCAMLC_OPTS)
 
-LIB_MODULES=hexstring.ml key.ml node.ml routing_table.ml
+LIB_MODULES=hexstring.ml key.ml node.ml routing_table.ml leaf_set.ml
 NON_LIB_MODULES=
 
 BYTE_TARGETS=pastry.cma
