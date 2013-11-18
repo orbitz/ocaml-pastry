@@ -1,5 +1,5 @@
 CAMLP4=
-OCAMLC_OPTS=-package pastry,oUnit,qcheck
+OCAMLC_OPTS=-package pastry,oUnit,qcheck,test_lib
 OCAMLOPT_OPTS=$(OCAMLC_OPTS)
 
 TEST_MODULES=\
@@ -8,11 +8,22 @@ TEST_MODULES=\
 	leaf_set_tests.ml \
 	key_props.ml
 
-TEST_DEPS=../lib/pastry/pastry.cma ../lib/pastry/pastry.cmxa
+TEST_DEPS=../lib/pastry/pastry.cma ../lib/pastry/pastry.cmxa \
+	test_lib ../lib/test_lib/test_lib.cma ../lib/test_lib/test_lib.cmxa
 
-.PHONY: all test
+.PHONY: all test test_lib
 
 all: test
+
+# A little hacky, but all libs belong in ../lib but we only want to build
+# test_lib when we are actually testing
+test_lib:
+	$(MAKE) -C ../lib/test_lib
+
+test_lib_clean:
+	$(MAKE) -C ../lib/test_lib clean
+
+clean: test_lib_clean
 
 # Dependencies
 include ../lib/Ocamlrules.mk.in

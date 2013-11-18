@@ -1,0 +1,6 @@
+name="test_lib"
+version="0.0.0"
+description="Pastry Test Lib"
+requires="core"
+archive(byte)="test_lib.cma"
+archive(native)="test_lib.cmxa"
