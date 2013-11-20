@@ -20,14 +20,14 @@ let prefix_prop =
     ~pp:QCheck.PP.(pair string string)
     QCheck.Arbitrary.(pair Test_lib.key_hexstring_gen Test_lib.key_hexstring_gen)
     (fun (h1, h2) ->
-	let hprefix = hexstring_prefix h1 h2 in
-	let kprefix =
-	  Pastry.Key.prefix
-	    ~b:4
-	    (Test_lib.key_of_hexstring h1)
-	    (Test_lib.key_of_hexstring h2)
-	in
-	hprefix = kprefix)
+      let hprefix = hexstring_prefix h1 h2 in
+      let kprefix =
+	Pastry.Key.prefix
+	  ~b:4
+	  (Test_lib.key_of_hexstring h1)
+	  (Test_lib.key_of_hexstring h2)
+      in
+      hprefix = kprefix)
 
 let closest_commutative_prop =
   QCheck.mk_test
@@ -45,9 +45,21 @@ let closest_commutative_prop =
       Pastry.Key.(
 	to_string (closest k1 (k2, k3)) = to_string (closest k1 (k3, k2))))
 
+let compare_props =
+  QCheck.mk_test
+    ~n:10000
+    ~name:"Compare"
+    ~pp:QCheck.PP.(pair string string)
+    QCheck.Arbitrary.(pair Test_lib.key_hexstring_gen Test_lib.key_hexstring_gen)
+    (fun (h1, h2) ->
+      let k1 = Test_lib.key_of_hexstring h1 in
+      let k2 = Test_lib.key_of_hexstring h2 in
+      String.compare h1 h2 = Pastry.Key.compare k1 k2)
+
 let props =
   [ prefix_prop
   ; closest_commutative_prop
+  ; compare_props
   ]
 
 let _ =
