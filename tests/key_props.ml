@@ -1,18 +1,5 @@
 open Core.Std
 
-let hexstring_prefix h1 h2 =
-  let rec prefix = function
-    | n when n < String.length h1 && n < String.length h2 && h1.[n] = h2.[n] ->
-      prefix (n + 1)
-    | n ->
-      n
-  in
-  (*
-   * Divide by 4 because we operate on 16bit digits and each hex base represents
-   * 1/4th a digit
-   *)
-  (prefix 0) / 4
-
 let prefix_prop =
   QCheck.mk_test
     ~n:10000
@@ -20,7 +7,7 @@ let prefix_prop =
     ~pp:QCheck.PP.(pair string string)
     QCheck.Arbitrary.(pair Test_lib.key_hexstring_gen Test_lib.key_hexstring_gen)
     (fun (h1, h2) ->
-      let hprefix = hexstring_prefix h1 h2 in
+      let hprefix = Test_lib.hexstring_prefix h1 h2 in
       let kprefix =
 	Pastry.Key.prefix
 	  ~b:4

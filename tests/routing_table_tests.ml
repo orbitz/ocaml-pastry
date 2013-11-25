@@ -65,6 +65,37 @@ let test_key_lookup_notfound1 () =
     None
     (Pastry.Routing_table.lookup ~k:search rt)
 
+let test_key_lookup_notfound2 () =
+  let me_hash     = "6F7761766C6377627562726B70626564" in
+  let search_hash = "696E797274677378627468777961636A" in
+  let hashes      = [ "726B6A6A73646F776863786E636D6564"
+		    ; "75767069786D616E656D787174677172"
+		    ; "6E77696D6E6D67686675627961717470"
+		    ; "70766278706D7878746C616865616270"
+		    ; "6F62696F75626D68737568676B6E6678"
+		    ; "746B666D67786864646F6C6E6F737078"
+		    ]
+  in
+  let me_key      = Test_lib.key_of_hexstring me_hash in
+  let search_key  = Test_lib.key_of_hexstring search_hash in
+  let rt =
+    List.fold_left
+      ~f:(fun rt h ->
+	Pastry.Routing_table.add
+	  ~node:(Pastry.Node.create
+		   ~distance:0
+		   ~k:(Test_lib.key_of_hexstring h)
+		   ())
+	  rt)
+      ~init:(Pastry.Routing_table.create ~me:me_key ~b:4)
+      hashes
+  in
+  assert_equal
+    ~printer:node_option_printer
+    ~cmp:node_option_compare
+    None
+    (Pastry.Routing_table.lookup ~k:search_key rt)
+
 let test_nodes () =
   let me_hash = "0123456789abcdef0123456789abcdef" in
   let me = to_key me_hash in

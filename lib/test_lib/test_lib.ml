@@ -15,3 +15,16 @@ let hexstring_of_key =
   Fn.compose
     Pastry.Hexstring.encode
     Pastry.Key.to_string
+
+let hexstring_prefix h1 h2 =
+  let rec prefix = function
+    | n when n < String.length h1 && n < String.length h2 && h1.[n] = h2.[n] ->
+      prefix (n + 1)
+    | n ->
+      n
+  in
+  (*
+   * Divide by 4 because we operate on 16bit digits and each hex base represents
+   * 1/4th a digit
+   *)
+  (prefix 0) / 4
