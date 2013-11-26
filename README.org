@@ -1,5 +1,11 @@
 * About
 PASTRY is a DHT.
+
+PASTRY is described here http://research.microsoft.com/en-us/um/people/antr/PAST/pastry.pdf
+
+The main implementation can also be found here http://www.freepastry.org/
+
+A Go implementation can be found https://github.com/secondbit/wendy
 * Features
 ** DONE Key representation
 Keys are 128 bit numeric value.
@@ -48,7 +54,7 @@ Operations:
 - Get a list of all the nodes
 ** TODO Neighborhood set
 Unclear if this is needed, looks like later versions of pastry remove this
-** TODO Leaf set
+** DONE Leaf set
 The leaf set is an even number with value L.  Half the leaf set is devoted to
 nodes whose value is smaller than the current nodeid and half devoted to larger.
 
@@ -65,3 +71,21 @@ NodeId 10233102
 
 The table is just for visualizing it and the actual rows do not matter, just
 that half of it is composed of nodes smaller and half of nodes larger.
+** TODO Router
+The Router contains a leaf set and a routing table.  The Router only changes
+when a node is added or removed.
+
+A Router starts out with no entries in it.  Nodes are added to it and popular
+the leaf set first and spill over to the routing table.
+*** Adding a Node
+When a node is added, it is first added to the leaf set.  The node is either
+inserted just fine, or it cannot be added because the leaf set is full and the
+new node is not any closer to the current node, or it evicts a node in there.
+
+In the case of not fitting in the leaf set or evicting a node, the node is
+possibly added to the routing table.  The node is successfully added to the
+routing table if the node in its position is empty or if present node is closer
+than the existing node.
+*** Removing a Node
+A node is removed simply by finding it in the Router and deleting its entry.
+
