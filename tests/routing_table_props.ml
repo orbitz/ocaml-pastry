@@ -69,7 +69,6 @@ let lookup_prop =
 	  ~f:(fun k -> Pastry.Node.create ~distance:0 ~k ())
 	  ks
       in
-      let kmenode       = Pastry.Node.create ~distance:0 ~k:kme () in
       let routing_table =
 	List.fold_left
 	  ~f:(fun rt node -> Pastry.Routing_table.add ~node rt)
