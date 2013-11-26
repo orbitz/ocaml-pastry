@@ -11,12 +11,12 @@ type 'a t
  * Create a leafset, the int represents half the number of
  * nodes it will store
  *)
-val create : me:'a Node.t -> int  -> 'a t
-val update : 'a Node.t    -> 'a t -> ('a Node.t option * 'a t)
-val remove : 'a Node.t    -> 'a t -> 'a t
-val nodes  : 'a t         -> 'a Node.t list
+val create : me:'a Node.t   -> int  -> 'a t
+val update : node:'a Node.t -> 'a t -> ('a Node.t option * 'a t)
+val remove : k:Key.t        -> 'a t -> 'a t
+val nodes  : 'a t           -> 'a Node.t list
 
 (*
  * If the key is inside the leafset, return the closest node
  *)
-val contains : Key.t -> 'a t -> 'a Node.t option
+val contains : k:Key.t -> 'a t -> 'a Node.t option

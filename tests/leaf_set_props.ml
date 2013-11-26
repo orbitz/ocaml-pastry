@@ -86,12 +86,12 @@ let contains_prop =
       let kmenode     = Pastry.Node.create ~distance:0 ~k:kme () in
       let leaf_set    =
 	List.fold_left
-	  ~f:(fun acc n -> snd (Pastry.Leaf_set.update n acc))
+	  ~f:(fun acc node -> snd (Pastry.Leaf_set.update ~node acc))
 	  ~init:(Pastry.Leaf_set.create ~me:kmenode (List.length hs / 2))
 	  ksnodes
       in
       node_option_compare
-	(Pastry.Leaf_set.contains ksearch leaf_set)
+	(Pastry.Leaf_set.contains ~k:ksearch leaf_set)
 	(contains hme hsearch hs))
 
 let evicted_prop =
@@ -117,11 +117,11 @@ let evicted_prop =
       let klastnode   = Pastry.Node.create ~distance:0 ~k:klast () in
       let leaf_set    =
 	List.fold_left
-	  ~f:(fun acc n -> snd (Pastry.Leaf_set.update n acc))
+	  ~f:(fun acc node -> snd (Pastry.Leaf_set.update ~node acc))
 	  ~init:(Pastry.Leaf_set.create ~me:kmenode size)
 	  ksnodes
       in
-      let (evicted, _) = Pastry.Leaf_set.update klastnode leaf_set in
+      let (evicted, _) = Pastry.Leaf_set.update ~node:klastnode leaf_set in
       match String.compare hme hlast with
 	| 0 -> true
 	| c -> begin
