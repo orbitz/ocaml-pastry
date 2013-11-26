@@ -52,7 +52,7 @@ let test_leaf_set_contains leafs me_hash search_hash found_hash () =
       ~f:(fun acc h ->
 	let key = Test_lib.key_of_hexstring h in
 	let node = Pastry.Node.create ~distance:0 ~k:key () in
-	Pastry.Leaf_set.update node acc)
+	snd (Pastry.Leaf_set.update node acc))
       ~init:(Pastry.Leaf_set.create ~me (List.length leafs / 2))
       leafs
   in

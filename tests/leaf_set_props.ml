@@ -2,6 +2,8 @@ open Core.Std
 
 let keys = QCheck.Arbitrary.(list ~len:small_int Test_lib.key_hexstring_gen)
 
+let many_keys min = QCheck.Arbitrary.(list ~len:(int_range ~start:min ~stop:(min * 2)) Test_lib.key_hexstring_gen)
+
 let keys_pp = QCheck.PP.(list string)
 
 let node_printer n =
@@ -84,7 +86,7 @@ let contains_prop =
       let kmenode     = Pastry.Node.create ~distance:0 ~k:kme () in
       let leaf_set    =
 	List.fold_left
-	  ~f:(Fn.flip Pastry.Leaf_set.update)
+	  ~f:(fun acc n -> snd (Pastry.Leaf_set.update n acc))
 	  ~init:(Pastry.Leaf_set.create ~me:kmenode (List.length hs / 2))
 	  ksnodes
       in
@@ -92,8 +94,49 @@ let contains_prop =
 	(Pastry.Leaf_set.contains ksearch leaf_set)
 	(contains hme hsearch hs))
 
+let evicted_prop =
+  QCheck.mk_test
+    ~n:1000
+    ~name:"Evicted"
+    ~pp:QCheck.PP.(triple keys_pp string string)
+    QCheck.Arbitrary.(triple
+			(many_keys 10)
+			Test_lib.key_hexstring_gen
+			Test_lib.key_hexstring_gen)
+    (fun (hs, hme, hlast) ->
+      let size    = List.length hs / 2 in
+      let ks      = List.map ~f:Test_lib.key_of_hexstring hs in
+      let kme     = Test_lib.key_of_hexstring hme in
+      let klast   = Test_lib.key_of_hexstring hlast in
+      let ksnodes =
+	List.map
+	  ~f:(fun k -> Pastry.Node.create ~distance:0 ~k ())
+	  ks
+      in
+      let kmenode     = Pastry.Node.create ~distance:0 ~k:kme () in
+      let klastnode   = Pastry.Node.create ~distance:0 ~k:klast () in
+      let leaf_set    =
+	List.fold_left
+	  ~f:(fun acc n -> snd (Pastry.Leaf_set.update n acc))
+	  ~init:(Pastry.Leaf_set.create ~me:kmenode size)
+	  ksnodes
+      in
+      let (evicted, _) = Pastry.Leaf_set.update klastnode leaf_set in
+      match String.compare hme hlast with
+	| 0 -> true
+	| c -> begin
+	  let nodes =
+	    List.filter
+	      ~f:(fun h -> String.compare hme h = c)
+	      hs
+	  in
+	  (List.length nodes < size && Option.is_none evicted) ||
+	    Option.is_some evicted
+	end)
+
 let props =
   [ contains_prop
+  ; evicted_prop
   ]
 
 let _ =
