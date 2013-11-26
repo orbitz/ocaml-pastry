@@ -12,7 +12,7 @@ type 'a t
  * nodes it will store
  *)
 val create : me:'a Node.t -> int  -> 'a t
-val update : 'a Node.t    -> 'a t -> 'a t
+val update : 'a Node.t    -> 'a t -> ('a Node.t option * 'a t)
 val remove : 'a Node.t    -> 'a t -> 'a t
 val nodes  : 'a t         -> 'a Node.t list
 

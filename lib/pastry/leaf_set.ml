@@ -31,25 +31,38 @@ let rec find_closest k = function
   | _::nodes ->
     find_closest k nodes
 
+(* API *)
 let create ~me size =
   { me; size; nodes = [me] }
 
 let update node t =
-  let nodes = List.sort ~cmp:compare_by_key (node::t.nodes) in
+  let all_nodes = List.sort ~cmp:compare_by_key (node::t.nodes) in
+
+  (* Partition into those less than t.me and more than t.me *)
   let smaller =
     List.take_while
       ~f:(fun n -> Key.compare (Node.key n) (Node.key t.me) < 0)
-      nodes
+      all_nodes
   in
   let larger =
     List.drop_while
       ~f:(fun n -> Key.compare (Node.key n) (Node.key t.me) <= 0)
-      nodes
+      all_nodes
   in
+
+  (* The new node set is those cut down on each side by size *)
   let nodes =
     List.rev (List.take (List.rev smaller) t.size) @ [t.me] @ List.take larger t.size
   in
-  {t with nodes = nodes }
+
+  (* There can be only 1 evicted node at most *)
+  let evicted =
+    match List.drop (List.rev smaller) t.size @ List.drop larger t.size with
+      | []  -> None
+      | [n] -> Some n
+      | _   -> failwith "Leaf_set.update"
+  in
+  (evicted, {t with nodes = nodes })
 
 let remove node t =
   let nodes = List.filter ~f:(doesn't_equal node) t.nodes in
