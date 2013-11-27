@@ -21,32 +21,41 @@ let to_string = String.copy
 
 let compare = String.compare
 
+let high_half_equals c1 c2 =
+  (* WILL BREAK IF WE ALLOW b OTHER THAN 4 *)
+  let i1 = (Char.to_int c1) lsr 4 in
+  let i2 = (Char.to_int c2) lsr 4 in
+  i1 = i2
+
 let prefix_len s1 s2 =
   let rec prefix_len' = function
     | n when n < num_char -> begin
       if s1.[n] = s2.[n] then
 	prefix_len' (n + 1)
+      else if high_half_equals s1.[n] s2.[n] then
+	n * 2 + 1
       else
-	n
+	n * 2
     end
     | n ->
-      n
+      n * 2
   in
   prefix_len' 0
 
 let prefix ~b t1 t2 =
   assert (b = 4);
-  (*
-   * Since enforcing b = 4 (16 bits) find the number of common bits and
-   * divide by 2, since a char is assumed to be 8 bits
-   *)
-  (prefix_len t1 t2) / 2
+  prefix_len t1 t2
 
 let digit ~b pos t =
   assert (b = 4);
-  assert (pos >= 0 && pos <= (total_bits / (1 lsl b)));
-  let pos_str = pos * 2 in
-  (Char.to_int t.[pos_str]) lsl 16 + (Char.to_int t.[pos_str + 1])
+  assert (pos >= 0 && pos <= (total_bits / b));
+  let pos_str = pos / 2 in
+  let two_digits = Char.to_int t.[pos_str] in
+  (* 0xF needs to be changed if b becomes more configurable *)
+  if (pos mod 2) = 0 then
+    (two_digits lsr b) land 0xF
+  else
+    two_digits land 0xF
 
 let closest k (t1, t2) =
   (* Guarantees lowest is returned if k is equidistant from t1, t2 *)

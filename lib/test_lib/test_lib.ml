@@ -23,8 +23,4 @@ let hexstring_prefix h1 h2 =
     | n ->
       n
   in
-  (*
-   * Divide by 4 because we operate on 16bit digits and each hex base represents
-   * 1/4th a digit
-   *)
-  (prefix 0) / 4
+  prefix 0
