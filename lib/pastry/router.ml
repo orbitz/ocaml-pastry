@@ -9,7 +9,7 @@ type 'a t = { me            : 'a Node.t
 let create ~me ~b =
   { me
   ; b
-  ; leaf_set      = Leaf_set.create ~me (2 * (2 lsl b))
+  ; leaf_set      = Leaf_set.create ~me (2 lsl b)
   ; routing_table = Routing_table.create ~me:(Node.key me) ~b
   }
 
