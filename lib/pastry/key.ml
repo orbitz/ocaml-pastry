@@ -74,21 +74,25 @@ let closest k (t1, t2) =
   let prefix_t2 = prefix ~b k t2 in
   match prefix_t1 - prefix_t2 with
     | 0 when compare t1 t2 = 0 ->
-      (* They are the all same *)
-      k
-    | 0 ->
-      (*
-       * They have the same number of digits in common, that means
-       * they must differ on the next digit.  And digits are actual ints
-       * so we know we can extract those and subtract them to find the closest
-       *)
+      (* The two inputs are the same, return either *)
+      t1
+    | 0 -> begin
       let digit_k  = digit ~b prefix_t1 k in
       let digit_t1 = digit ~b prefix_t1 t1 in
       let digit_t2 = digit ~b prefix_t1 t2 in
-      if abs (digit_k - digit_t1) < abs (digit_k - digit_t2) then
-	t1
-      else
-	t2
+      let abs_k_t1 = abs (digit_k - digit_t1) in
+      let abs_k_t2 = abs (digit_k - digit_t2) in
+
+      match abs_k_t1 - abs_k_t2 with
+	| c when c < 0 ->
+	  t1
+	| c when c > 0 ->
+	  t2
+	| 0 when String.compare k t1 < 0 ->
+	  t1
+	| 0 ->
+	  t2
+    end
     | n when n < 0 ->
       (*
        * If k has fewer digits in common t1 than t2, then it means t2 must
