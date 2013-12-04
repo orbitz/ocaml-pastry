@@ -47,21 +47,14 @@ let route ~k t =
 	  n
 	| None -> begin
 	  (*
-	   * If it's not found in either, then find the node that shares
-	   * a key just as long, if not longer, than the current node.
-	   * Otherwise route to self
+	   * If not found in either, we union all of the nodes together
+	   * and find the node which is closest to the search key.
 	   *)
-	  let local_prefix = Key.prefix ~b:t.b (Node.key t.me) k in
-	  let nodes =
-	    List.filter
-	      ~f:(fun n ->
-		Key.compare (Node.key t.me) (Node.key n) <> 0 &&
-		  Key.prefix ~b:t.b (Node.key n) k >= local_prefix)
-	      (Routing_table.nodes t.routing_table @ Leaf_set.nodes t.leaf_set)
-	  in
-	  match nodes with
-	    | []   -> t.me
-	    | n::_ -> n
+	  Option.value
+	    ~default:t.me
+	    (Node.find_closest
+	       k
+	       ([t.me] @ Leaf_set.nodes t.leaf_set @ Routing_table.nodes t.routing_table))
 	end
     end
 
