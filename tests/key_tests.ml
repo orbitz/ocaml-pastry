@@ -184,6 +184,18 @@ let test_key_closest6 () =
     closer
     (Pastry.Key.closest k (farther, closer))
 
+let test_key_closest7 () =
+  let k_of_h = Test_lib.key_of_hexstring in
+  let k1     = k_of_h "6E7779707679686566786D6373797763" in
+  let k2     = k_of_h "686A676B727264646A6E656B726B6D74" in
+  let k3     = k_of_h "69707470726A69716C70627578747469" in
+  assert_equal
+    ~printer:string_of_key
+    ~cmp:key_compare
+    k3
+    (Pastry.Key.closest k1 (k2, k3))
+
+
 let suite = "Pastry Base Tests"  >:::
   [ "Key: Create Success"       >:: (test_key_create_success)
   ; "Key: Create Short Failure" >:: (test_key_create_short_failure)
@@ -202,6 +214,7 @@ let suite = "Pastry Base Tests"  >:::
   ; "Key: Closest 4"            >:: (test_key_closest4)
   ; "Key: Closest 5"            >:: (test_key_closest5)
   ; "Key: Closest 6"            >:: (test_key_closest6)
+  ; "Key: Closest 7"            >:: (test_key_closest7)
   ]
 
 let _ = run_test_tt_main suite
