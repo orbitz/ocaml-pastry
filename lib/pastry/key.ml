@@ -92,6 +92,8 @@ let closest k (t1, t2) =
 	  t1
 	| 0 ->
 	  t2
+	| _ ->
+	  failwith "wil never happen just shutting up compiler"
     end
     | n when n < 0 ->
       (*
