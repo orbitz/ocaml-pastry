@@ -6,6 +6,8 @@ val create :
   'a ->
   'a t
 
-val distance : 'a t -> int
-val key      : 'a t -> Key.t
-val of_t     : 'a t -> 'a
+val distance     : 'a t  -> int
+val key          : 'a t  -> Key.t
+val closest      : Key.t -> ('a t * 'a t) -> 'a t
+val find_closest : Key.t -> 'a t list     -> 'a t option
+val of_t         : 'a t  -> 'a

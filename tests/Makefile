@@ -7,7 +7,7 @@ TEST_MODULES=\
 	routing_table_tests.ml node_tests.ml \
 	leaf_set_tests.ml \
 	key_props.ml leaf_set_props.ml \
-	routing_table_props.ml
+	routing_table_props.ml router_props.ml
 
 TEST_DEPS=../lib/pastry/pastry.cma ../lib/pastry/pastry.cmxa \
 	test_lib ../lib/test_lib/test_lib.cma ../lib/test_lib/test_lib.cmxa

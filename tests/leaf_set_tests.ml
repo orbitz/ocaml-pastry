@@ -42,7 +42,7 @@ let test_leaf_set_empty_contains1 () =
     ~printer:node_option_printer
     ~cmp:node_option_compare
     None
-    (Pastry.Leaf_set.contains search leaf_set)
+    (Pastry.Leaf_set.contains ~k:search leaf_set)
 
 let test_leaf_set_contains leafs me_hash search_hash found_hash () =
   let me_key      = Test_lib.key_of_hexstring me_hash in
@@ -52,7 +52,7 @@ let test_leaf_set_contains leafs me_hash search_hash found_hash () =
       ~f:(fun acc h ->
 	let key = Test_lib.key_of_hexstring h in
 	let node = Pastry.Node.create ~distance:0 ~k:key () in
-	snd (Pastry.Leaf_set.update node acc))
+	snd (Pastry.Leaf_set.update ~node acc))
       ~init:(Pastry.Leaf_set.create ~me (List.length leafs / 2))
       leafs
   in
@@ -63,7 +63,7 @@ let test_leaf_set_contains leafs me_hash search_hash found_hash () =
     ~printer:node_option_printer
     ~cmp:node_option_compare
     (Some found_node)
-    (Pastry.Leaf_set.contains search leaf_set)
+    (Pastry.Leaf_set.contains ~k:search leaf_set)
 
 let me_hash_contains1     = "6C6D746C70677171676379747363666F"
 let search_hash_contains1 = "6B776D6C736C6E75677372656867726B"

@@ -11,6 +11,9 @@ let compare_by_key n1 n2 =
 let doesn't_equal n1 n2 =
   compare_by_key n1 n2 <> 0
 
+let doesn't_equal_key k n1 =
+  Key.compare k (Node.key n1) <> 0
+
 let between k (k1, k2) =
   Key.compare k k1 >= 0 && Key.compare k k2 <= 0
 
@@ -35,7 +38,7 @@ let rec find_closest k = function
 let create ~me size =
   { me; size; nodes = [me] }
 
-let update node t =
+let update ~node t =
   let all_nodes = List.sort ~cmp:compare_by_key (node::t.nodes) in
 
   (* Partition into those less than t.me and more than t.me *)
@@ -64,11 +67,11 @@ let update node t =
   in
   (evicted, {t with nodes = nodes })
 
-let remove node t =
-  let nodes = List.filter ~f:(doesn't_equal node) t.nodes in
+let remove ~k t =
+  let nodes = List.filter ~f:(doesn't_equal_key k) t.nodes in
   { t with nodes = nodes }
 
 let nodes t = t.nodes
 
-let contains k t =
+let contains ~k t =
   find_closest k t.nodes
