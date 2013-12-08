@@ -1,165 +1,138 @@
 open Core.Std
 open Async.Std
 
-module type APP = sig
-  type t
+(* Hardcoded for now *)
+let b = 4
 
-  val deliver  : t -> Message.t -> unit Deferred.t
-  val forward  : t -> Message.t -> Node.t -> Message.t option Deferred.t
-  val new_leaf : t -> Leaf_set.t -> unit Deferred.t
+module type APP = sig
+  type 'a t
+
+  val deliver :
+    'a t ->
+    Msg.Payload.t ->
+    (unit, unit) Deferred.Result.t
+
+  val forward :
+    'a t ->
+    Msg.Payload.t ->
+    'a Node.t ->
+    (Msg.Payload.t * 'a Node.t) option Deferred.t
+
+  val new_leaf_set :
+    'a t ->
+    'a Leaf_set.t ->
+    unit Deferred.t
 end
 
 module type IO = sig
   type t
 
-  val join  : t -> me:Node.t -> string -> State.t Deferred.t
-  val read  : t -> Event.t Deferred.t
-  val write : t -> Message.t -> (unit, Write_error.t) Result.t Deferred.t
-end
+  module Endpoint : sig
+    type t
+    val to_string : t -> string
+  end
 
-module Msg = struct
-  type t =
-    | Route of (Message.t * unit Ivar.t)
-    | Stop
-    | Io_event of Event.t
-
-  let send mq m =
-    try
-      Tail.extend mq m;
-      true
-    with
-	Failure _ ->
-	  false
+  val announce   : t -> Endpoint.t -> (Endpoint.t Msg.Announce_resp.t, unit) Deferred.Result.t
+  val send_state : t -> Endpoint.t -> Endpoint.t Router.t -> (unit, unit) Deferred.Result.t
+  val send       : t -> Endpoint.t -> Msg.Payload.t -> (unit, unit) Deferred.Result.t
+  val ping       : t -> Endpoint.t -> (unit, unit) Deferred.Result.t
+  val distance   : t -> Endpoint.t -> (int, unit) Deferred.Result.t
+  val listen     : t -> (Endpoint.t Msg.All.t, unit) Deferred.Result.t
+  val close      : t -> unit Deferred.t
 end
 
 
 module Make = functor (App : APP) -> functor (Io : IO) -> struct
-  type init_args = { log      : string -> unit
-		   ; node_id  : unit -> Node.t
-		   ; initial  : string list
-		   ; distance : Node.t -> int option Deferred.t
-		   ; b        : int
-		   ; l        : int
-		   ; app      : App.t
-		   ; io       : Io.t
+
+  type init_args = { node_id : Io.Endpoint.t Node.t
+		   ; app     : Io.Endpoint.t App.t
+		   ; io      : Io.t
+		   ; connect : Io.Endpoint.t option
 		   }
 
+
   module State = struct
-    type t = { log       : string -> unit
-	     ; node_id   : Node.t
+    type t = { node_id   : Io.Endpoint.t Node.t
 	     ; timestamp : Core.Time.t
-	     ; distance  : Node.t -> int option Deferred.t
-	     ; b         : int
-	     ; app       : App.t
+	     ; app       : Io.Endpoint.t App.t
 	     ; io        : Io.t
-	     ; rt        : Routing_table.t
-	     ; ns        : Neighborhood_set.t
-	     ; ls        : Leaf_set.t
-	     ; mq        : Msg.t Tail.t
+	     ; router    : Io.Endpoint.t Router.t
 	     }
   end
 
-  type t = Msg.t Tail.t
+  module Message = struct
+    type t =
+      | Route of Msg.Payload.t
+      | Incoming of Io.Endpoint.t Msg.All.t
+  end
+
+  type t = Message.t Gen_server.t
 
   (*
-   * New connection as viewed from an already established node:
-   * - Receives a Node_join message
-   * - Routes the Node_join message like any other message
-   * - When the routing comes back successful sends state to
-   *   the joined node
-   * - Upon success of sending the state, success is returned
-   *   to sender of Node_join message
-   *
-   * In this way a long chain all the way to the destination
-   * node is formed and the joining node only sees success if
-   * the entire path succeeds.  If a node in between fails the
-   * routing mechanism will retry and if that fails the error
-   * will propogate all the way back to the joining node.
-   * A joining node may receive more states than requests due
-   * to node failures and retries along the way.
-   *
-   * New connection from a joining node:
-   * - Starts event loop as if it is it's own cluster
-   * - Loops over `initial` list sending Node_join message
-   * - If Node_join message send fails, try next in `initial`
-   * - If all fail, stop the event loop then exit with failure
-   * - If Node_join succeeds, the event loop will receive state
-   *   updates from the appropriate nodes and incorporates it
-   *   in its state
+   * Internal API
    *)
-  let connect t =
-    Deferred.return (Result.Error ())
+  let maybe_connect io node router =
+    match node with
+      | Some endpoint ->
+	Join_protocol.join
+	  (fun () -> Io.announce io endpoint)
+	  (Io.send_state io)
+	  router
+      | None ->
+	Deferred.return (Ok router)
 
+  (*
+   * Gen_server callbacks
+   *)
+  let init self init_args =
+    let state = { State.node_id   = init_args.node_id
+		;       timestamp = Core.Time.now ()
+		;       app       = init_args.app
+		;       io        = init_args.io
+		;       router    = Router.create ~me:init_args.node_id ~b
+		}
+    in
+    maybe_connect
+      state.State.io
+      init_args.connect
+      state.State.router
+    >>= function
+      | Ok router -> begin
+	Listen_loop.run
+	  (fun m -> Gen_server.send self (Message.Incoming m))
+	  (fun () -> Io.listen state.State.io);
+	Gen_server.return { state with State.router = router }
+      end
+      | Error () ->
+	Gen_server.fail state
 
-  let rec io_msg_loop io mq =
-    Io.read io >>> fun event ->
-    if Msg.send mq (Msg.Io_event event) then
-      io_msg_loop io mq
+  let handle_call _self state = function
+    | Message.Route payload -> begin
+      let key = payload.Msg.Payload.key in
+      let next_route = Router.route ~k:key state.State.router in
+      Io.send state.State.io (Node.of_t next_route) payload >>= function
+	| Ok () ->
+	  Gen_server.return state
+	| Error () ->
+	  failwith "bad mojo"
+    end
+    | Message.Incoming msg ->
+      Gen_server.return state
 
-
-  let handle_route s (m, r) =
-    Deferred.return s
-
-  let handle_io_msg s = function
-    | Event.Node_join node -> ()
-    | Event.Node_joined node -> ()
-    | Event.Node_state (r, ns, ls) -> ()
-    | Event.Node_part node -> ()
-    | Event.Message m -> ()
-
-  let handle_msg s = function
-    | Route msg    -> handle_route s msg
-    | Stop         -> begin Tail.close_if_open s.State.mq; Deferred.return s end
-    | Io_event msg -> handle_io_msg s msg
-
-  let rec loop s =
-    if not (Tail.is_closed s.State.mq) then
-      let stream = Tail.collect s.State.mq in
-      Stream.fold'
-	~f:handle_msg
-	~init:t
-	stream >>= loop
-    else
-      Deferred.return ()
+  let terminate state =
+    Io.close state.State.io
 
   (*
    * API
    *)
-  let stop t =
-    ignore (Msg.send t Msg.Stop);
-    Deferred.return ()
+  let start init_args =
+    let gs = { Gen_server.Server.init; handle_call; terminate } in
+    Gen_server.start init_args gs
 
-  let start ia =
-    let module S = State in
-    let node_id  = ia.node_id () in
-    let rt       = Routing_table.make ~me:node_id ~b:ia.b ia.distance in
-    let ns       = Neighborhood_set.make ~me:node_id ia.l in
-    let ls       = Leaf_set.make ~me:node_id ia.l in
-    let s        = { S.log       = ia.log
-		   ;   node_id   = node_id
-		   ;   timestamp = Core.Time.now ()
-		   ;   distance  = ia.distance
-		   ;   b         = ia.b
-		   ;   app       = ia.app
-		   ;   io        = ia.io
-		   ;   rt        = rt
-		   ;   ns        = ns
-		   ;   ls        = ls
-		   }
-    in
-    whenever (loop s);
-    connect t >>= function
-      | Result.Ok s' -> begin
-	Deferred.return (Result.Ok s'.State.mq)
-      end
-      | Result.Error err -> begin
-	stop s >>= fun () ->
-	Deferred.return (Result.Error err)
-      end
+  let stop = Gen_server.stop
 
-  let route t m =
-    let r = Ivar.create () in
-    ignore (Msg.send t (Msg.route m, r));
-    Ivar.read r
+  let route t payload =
+    Gen_server.send t (Message.Route payload)
+
 end
 
