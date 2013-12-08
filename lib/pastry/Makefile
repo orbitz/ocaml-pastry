@@ -1,9 +1,18 @@
 CAMLP4=
 PACK=pastry
-OCAMLC_OPTS=-package core,sexplib.syntax,comparelib.syntax -syntax camlp4o
+
+PACKAGES=async,async_unix,core,sexplib.syntax,comparelib.syntax,gen_server
+
+OCAMLC_OPTS=-package $(PACKAGES) -syntax camlp4o
 OCAMLOPT_OPTS=$(OCAMLC_OPTS)
 
-LIB_MODULES=hexstring.ml key.ml node.ml routing_table.ml leaf_set.ml router.ml
+LIB_MODULES= \
+	hexstring.ml \
+	key.ml node.ml \
+	routing_table.ml leaf_set.ml router.ml \
+	msg.ml listen_loop.ml \
+	join_protocol.ml app.ml
+
 NON_LIB_MODULES=
 
 BYTE_TARGETS=pastry.cma

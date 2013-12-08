@@ -1,6 +1,6 @@
 name="pastry"
 version="0.0.0"
 description="Pastry Implementation"
-requires="core"
+requires="core,async,async_unix,gen_server"
 archive(byte)="pastry.cma"
 archive(native)="pastry.cmxa"
