@@ -39,12 +39,6 @@ $(test_native): $(test_native_cmx)
 
 $(test_byte): $(test_byte_cmo)
 
-$(native_cmx): $(all_sources) $(neutral_cmi)
-
-$(byte_cmo): $(all_sources) $(neutral_cmi)
-
-$(neutral_cmi): $(sources_mli)
-
 byte-code: $(BYTE_TARGETS)
 
 native-code: $(NATIVE_TARGETS)
