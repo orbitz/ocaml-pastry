@@ -29,6 +29,20 @@ let node_option_compare x y =
     | _ ->
       false
 
+let leaf_set_of_hexstrings hme hs =
+  let ks       = List.map ~f:Test_lib.key_of_hexstring hs in
+  let kme      = Test_lib.key_of_hexstring hme in
+  let kmenode  = Pastry.Node.create ~distance:0 ~k:kme () in
+  let ksnodes  =
+    List.map
+      ~f:(fun k -> Pastry.Node.create ~distance:0 ~k ())
+      ks
+  in
+  List.fold_left
+    ~f:(fun acc node -> snd (Pastry.Leaf_set.update ~node acc))
+    ~init:(Pastry.Leaf_set.create ~me:kmenode (List.length hs / 2))
+    ksnodes
+
 let rec find_closest hsearch = function
   | [] ->
     None
@@ -134,9 +148,35 @@ let evicted_prop =
 	    Option.is_some evicted
 	end)
 
+let equal_prop =
+  QCheck.mk_test
+    ~n:1000
+    ~name:"Equal"
+    ~pp:QCheck.PP.(pair keys_pp string)
+    QCheck.Arbitrary.(pair (many_keys 10) Test_lib.key_hexstring_gen)
+    (fun (hs, hme) ->
+      let leaf_set = leaf_set_of_hexstrings hme hs in
+      Pastry.Leaf_set.equal leaf_set leaf_set)
+
+let notequal_prop =
+  QCheck.mk_test
+    ~n:1000
+    ~name:"Not Equal"
+    ~pp:QCheck.PP.(triple keys_pp keys_pp string)
+    QCheck.Arbitrary.(triple
+			(many_keys 10)
+			(many_keys 10)
+			Test_lib.key_hexstring_gen)
+    (fun (hs1, hs2, hme) ->
+      let leaf_set1 = leaf_set_of_hexstrings hme hs1 in
+      let leaf_set2 = leaf_set_of_hexstrings hme hs2 in
+      not (Pastry.Leaf_set.equal leaf_set1 leaf_set2))
+
 let props =
   [ contains_prop
   ; evicted_prop
+  ; equal_prop
+  ; notequal_prop
   ]
 
 let _ =

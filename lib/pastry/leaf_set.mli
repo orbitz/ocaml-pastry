@@ -20,3 +20,5 @@ val nodes  : 'a t           -> 'a Node.t list
  * If the key is inside the leafset, return the closest node
  *)
 val contains : k:Key.t -> 'a t -> 'a Node.t option
+
+val equal    : 'a t -> 'a t -> bool

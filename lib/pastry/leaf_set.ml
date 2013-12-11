@@ -75,3 +75,18 @@ let nodes t = t.nodes
 
 let contains ~k t =
   find_closest k t.nodes
+
+let equal t1 t2 =
+  let all f l =
+    List.fold_left
+      ~f:(fun acc e -> acc && f e)
+      ~init:true
+      l
+  in
+  match List.zip t1.nodes t2.nodes with
+    | Some zipped ->
+      all
+	(fun (n1, n2) -> Key.compare (Node.key n1) (Node.key n2) = 0)
+	zipped
+    | None ->
+      false
