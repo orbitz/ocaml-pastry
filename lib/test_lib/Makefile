@@ -2,6 +2,8 @@ CAMLP4=
 OCAMLC_OPTS=-package core,qcheck,pastry
 OCAMLOPT_OPTS=$(OCAMLC_OPTS)
 
+EXTERNAL_DEPS=../pastry/pastry.cmxa ../pastry/pastry.cmo
+
 LIB_MODULES=test_lib.ml
 NON_LIB_MODULES=
 
