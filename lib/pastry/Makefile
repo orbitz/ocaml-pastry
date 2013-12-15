@@ -3,7 +3,8 @@ PACK=pastry
 
 PACKAGES=async,async_unix,core,sexplib.syntax,comparelib.syntax,gen_server
 
-OCAMLC_OPTS=-package $(PACKAGES) -syntax camlp4o
+OCAMLDEP_OPTS=-package $(PACKAGES) -syntax camlp4o
+OCAMLC_OPTS=$(OCAMLDEP_OPTS) -w A
 OCAMLOPT_OPTS=$(OCAMLC_OPTS)
 
 LIB_MODULES= \

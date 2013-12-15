@@ -71,7 +71,7 @@ NodeId 10233102
 
 The table is just for visualizing it and the actual rows do not matter, just
 that half of it is composed of nodes smaller and half of nodes larger.
-** TODO Router
+** DONE Router
 The Router contains a leaf set and a routing table.  The Router only changes
 when a node is added or removed.
 
