@@ -88,4 +88,40 @@ routing table if the node in its position is empty or if present node is closer
 than the existing node.
 *** Removing a Node
 A node is removed simply by finding it in the Router and deleting its entry.
+** TODO Join Protocol
+Joining is the act of a node joining an existing cluster.  The join protocol
+describes how a node joins an existing cluster.
 
+The join protocol boils down to:
+
+- The joining node sending an Announce message to the node it knows about.
+- The receiving node routes the Announce message to appropriate node using the
+  joining node's id as the key.
+- Every node hit a long the route adds its relevant routing information.
+- When the announce message reaches the destination node, it sends the message
+  pack to the joining node.
+- The joining node takes all the routing information, constructs its own router
+  then contacts appropriate nodes, informing them of its existence.
+- If an error happens at any point, the node simply retries the entire process.
+
+In detail:
+
+Consider a cluster with only one node in it.
+
+- A new node sends an Announce message.
+- There is only 1 node, so the message gets routing to the existing node.
+- The existing node responds to the joining node with all of its routing
+  information, which is empty at this point.
+- The joining node takes the announce response, finds the entry in it that is
+  closest to its own node id and adds it, and its leaf set, to its own leaf set.
+  It then sends its leaf set to every entry in its newly created leaf set.
+  Every node contacted then adds the contactee to its own router.  How these
+  nodes handle this message is described later.
+
+By this point, each node will have the other in its leaf set and contain empty
+routing tables.
+
+The above pattern continues, filling up the leaf set.  At some point, a joining
+node will fill up a nodes leaf set, causing spill over into the routing table.
+
+When a joining node receives an Announce response with entries 

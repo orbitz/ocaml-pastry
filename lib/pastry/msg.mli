@@ -3,7 +3,11 @@ module Announce : sig
 end
 
 module Announce_resp : sig
-  type 'a t = ('a Node.t * 'a Router.t) list
+  type 'a e = { node      : 'a Node.t
+              ; router    : 'a Router.t
+              ; timestamp : Core.Time.t
+              }
+  type 'a t = 'a e list
 end
 
 module Node_state : sig
@@ -12,8 +16,8 @@ end
 
 module Payload : sig
   type t = { key     : Key.t
-	   ; payload : string
-	   }
+           ; payload : string
+           }
 end
 
 

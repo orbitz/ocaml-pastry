@@ -3,7 +3,11 @@ module Announce = struct
 end
 
 module Announce_resp = struct
-  type 'a t = ('a Node.t * 'a Router.t) list
+  type 'a e = { node      : 'a Node.t
+              ; router    : 'a Router.t
+              ; timestamp : Core.Time.t
+              }
+  type 'a t = 'a e list
 end
 
 module Node_state = struct
@@ -12,8 +16,8 @@ end
 
 module Payload = struct
   type t = { key     : Key.t
-	   ; payload : string
-	   }
+           ; payload : string
+           }
 end
 
 
