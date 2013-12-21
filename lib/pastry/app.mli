@@ -26,6 +26,7 @@ module type IO = sig
 
   module Endpoint : sig
     type t
+    val equal     : t -> t -> bool
     val to_string : t -> string
   end
 
@@ -47,8 +48,8 @@ module Make : functor (App : APP) -> functor (Io : IO) -> sig
 		   ; connect : Io.Endpoint.t option
 		   }
 
-  val start : init_args -> (t, unit) Deferred.Result.t
-  val stop  : t -> unit Deferred.t
-  val route : t -> Msg.Payload.t -> unit Deferred.t
+  val start : init_args -> (t, [> unit Gen_server.init_ret ]) Deferred.Result.t
+  val stop  : t -> (unit, [> `Closed ]) Deferred.Result.t
+  val route : t -> Msg.Payload.t -> (unit, unit) Deferred.Result.t
 end
 

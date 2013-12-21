@@ -1,6 +1,6 @@
 open Async.Std
 
-type 'a sender = 'a Msg.All.t -> unit Deferred.t
-type 'a listener = unit -> ('a Msg.All.t, unit) Deferred.Result.t
+type ('e, 'err) sender = 'e Msg.All.t -> ('e Msg.All.t, 'err) Deferred.Result.t
+type ('e, 'err) listener = unit -> ('e Msg.All.t, 'err) Deferred.Result.t
 
-val run : 'a sender -> 'a listener -> unit
+val run : ('e, 'err1) sender -> ('e, 'err2) listener -> unit

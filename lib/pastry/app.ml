@@ -1,6 +1,8 @@
 open Core.Std
 open Async.Std
 
+module Resp = Gen_server.Response
+
 (* Hardcoded for now *)
 let b = 4
 
@@ -29,6 +31,7 @@ module type IO = sig
 
   module Endpoint : sig
     type t
+    val equal     : t -> t -> bool
     val to_string : t -> string
   end
 
@@ -74,12 +77,14 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
   let maybe_connect io node router =
     match node with
       | Some endpoint ->
-	Join_protocol.join
-	  (fun () -> Io.announce io endpoint)
-	  (Io.send_state io)
-	  router
+	Deferred.return (Error ())
       | None ->
 	Deferred.return (Ok router)
+
+  let send_incoming gs m =
+    let open Deferred.Result in
+    Gen_server.send gs (Message.Incoming m) >>= fun _ ->
+    Deferred.return (Ok m)
 
   (*
    * Gen_server callbacks
@@ -99,12 +104,12 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
     >>= function
       | Ok router -> begin
 	Listen_loop.run
-	  (fun m -> Gen_server.send self (Message.Incoming m))
+	  (send_incoming self)
 	  (fun () -> Io.listen state.State.io);
-	Gen_server.return { state with State.router = router }
+	Deferred.return (Ok { state with State.router = router })
       end
       | Error () ->
-	Gen_server.fail state
+	Deferred.return (Error ())
 
   let handle_call _self state = function
     | Message.Route payload -> begin
@@ -112,14 +117,14 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
       let next_route = Router.route ~k:key state.State.router in
       Io.send state.State.io (Node.of_t next_route) payload >>= function
 	| Ok () ->
-	  Gen_server.return state
+	  Deferred.return (Gen_server.Response.Ok state)
 	| Error () ->
 	  failwith "bad mojo"
     end
     | Message.Incoming msg ->
-      Gen_server.return state
+      Deferred.return (Resp.Ok state)
 
-  let terminate state =
+  let terminate _reason state =
     Io.close state.State.io
 
   (*
@@ -132,7 +137,9 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
   let stop = Gen_server.stop
 
   let route t payload =
-    Gen_server.send t (Message.Route payload)
+    Gen_server.send t (Message.Route payload) >>= function
+      | Ok _    -> Deferred.return (Ok ())
+      | Error _ -> Deferred.return (Error ())
 
 end
 
