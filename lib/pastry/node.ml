@@ -10,6 +10,8 @@ let create ~distance ~k a =
 
 let distance t = t.d
 
+let set_distance d t = { t with d }
+
 let key t = t.k
 
 let closest k (t1, t2) =

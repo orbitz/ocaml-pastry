@@ -37,6 +37,8 @@ let remove ~k t =
   ; routing_table = Routing_table.remove ~k t.routing_table
   }
 
+let me t = t.me
+
 let route ~k t =
   match Leaf_set.contains ~k t.leaf_set with
     | Some n ->

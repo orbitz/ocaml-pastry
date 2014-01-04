@@ -7,6 +7,7 @@ val create :
   'a t
 
 val distance     : 'a t  -> int
+val set_distance : int   -> 'a t -> 'a t
 val key          : 'a t  -> Key.t
 val closest      : Key.t -> ('a t * 'a t) -> 'a t
 val find_closest : Key.t -> 'a t list     -> 'a t option
