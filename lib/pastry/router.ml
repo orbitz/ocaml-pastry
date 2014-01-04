@@ -39,6 +39,11 @@ let remove ~k t =
 
 let me t = t.me
 
+let nodes t =
+  List.filter
+    ~f:(fun n -> Key.compare (Node.key n) (Node.key t.me) <> 0)
+    (Leaf_set.nodes t.leaf_set @ Routing_table.nodes t.routing_table)
+
 let route ~k t =
   match Leaf_set.contains ~k t.leaf_set with
     | Some n ->
@@ -56,7 +61,7 @@ let route ~k t =
 	    ~default:t.me
 	    (Node.find_closest
 	       k
-	       ([t.me] @ Leaf_set.nodes t.leaf_set @ Routing_table.nodes t.routing_table))
+	       ([t.me] @ nodes t))
 	end
     end
 

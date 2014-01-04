@@ -8,3 +8,4 @@ val me            : 'a t           -> 'a Node.t
 val route         : k:Key.t        -> 'a t -> 'a Node.t
 val leaf_set      : 'a t           -> 'a Leaf_set.t
 val routing_table : 'a t           -> 'a Routing_table.t
+val nodes         : 'a t           -> 'a Node.t list
