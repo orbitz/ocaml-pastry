@@ -18,11 +18,11 @@ let add_leaf_set = Fn.id
 
 let add_routing_table = Fn.id
 
-let return_parts (router, _, contact_nodes) =
-  (router, contact_nodes)
+let return_contact_nodes (_, contact_nodes) =
+  contact_nodes
 
-let join me router resp =
-  (router, resp, [])
+let router_nodes ~me resp =
+  (resp, [])
   |> add_leaf_set
   |> add_routing_table
-  |> return_parts
+  |> return_contact_nodes

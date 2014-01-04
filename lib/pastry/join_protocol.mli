@@ -1,2 +1,1 @@
-val join : 'a Node.t -> 'a Router.t -> 'a Msg.Announce_resp.t -> ('a Router.t * 'a Node.t list)
-
+val router_nodes : me:'a Node.t -> 'a Msg.Announce_resp.t -> 'a Node.t list

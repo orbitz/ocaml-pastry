@@ -74,12 +74,54 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
   (*
    * Internal API
    *)
-  let maybe_connect io node router =
-    match node with
-      | Some endpoint ->
-	Deferred.return (Error ())
-      | None ->
-	Deferred.return (Ok router)
+  module Join = struct
+    let measure_distances io nodes =
+      Deferred.List.map
+	~f:(fun n ->
+	  let open Deferred.Result in
+	      Io.distance io (Node.of_t n) >>= fun distance ->
+	      Deferred.return (Ok (Node.set_distance distance n)))
+	nodes
+      >>= fun res ->
+      match Result.all res with
+	| Ok nodes -> Deferred.return (Ok nodes)
+	| Error () -> Deferred.return (Error ())
+
+    let update_router nodes_with_distance router =
+      List.fold_left
+	~f:(fun r node -> Router.update ~node r)
+	~init:router
+	nodes_with_distance
+
+    let notify_peers io router =
+      let nodes = Router.nodes router in
+      Deferred.List.map
+	~f:(fun n -> Io.send_state io (Node.of_t n) router)
+	nodes
+      >>= fun res ->
+      match Result.all res with
+	| Ok _     -> Deferred.return (Ok router)
+	| Error () -> Deferred.return (Error ())
+
+    let connect_to_cluster io endpoint router =
+      let open Deferred.Result in
+      Io.announce io endpoint >>= fun resp ->
+      let nodes = Join_protocol.router_nodes ~me:(Router.me router) resp in
+      measure_distances io nodes >>= fun nodes_with_distance ->
+      let router' = update_router nodes_with_distance router in
+      notify_peers io router'
+
+    (*
+     * This is the entry point for this module which will connect
+     * to a cluster if an initial node is provided
+     *)
+    let maybe_connect io node router =
+      match node with
+	| Some endpoint ->
+	  connect_to_cluster io endpoint router
+	| None ->
+	  Deferred.return (Ok router)
+  end
 
   let send_incoming gs m =
     let open Deferred.Result in
@@ -97,7 +139,7 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
 		;       router    = Router.create ~me:init_args.node_id ~b
 		}
     in
-    maybe_connect
+    Join.maybe_connect
       state.State.io
       init_args.connect
       state.State.router
