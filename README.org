@@ -109,7 +109,7 @@ A node is removed simply by finding it in the Router and deleting its entry.
     Router will replace any node added to it if the added nodes distance is
     smaller.
 - Once the Router has been constructed, all nodes are sent a copy of the joining
-  nodes state.
+  nodes state, this is handled on the nodes as any other state update.
 - If any point in this fails, the entire process fails (future optimizations
   include ignoring failed nodes where another equally good node could have been
   used in its place).
