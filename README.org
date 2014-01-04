@@ -88,4 +88,29 @@ routing table if the node in its position is empty or if present node is closer
 than the existing node.
 *** Removing a Node
 A node is removed simply by finding it in the Router and deleting its entry.
+** TODO Join Protocol
+*** Join Protocol at a high level
+- A node declares its desire to join a cluster by sending an Announce message to
+  another node it knows about.  This message has the joining node NodeId as a
+  routing key.
+- The Announce message is routed to the node with the closest node id to its
+  routing key.
+- All nodes seen along the way inform the joining node of the relevant parts of
+  their router.  In particular this requires:
+  - The node with the closest node id to the joining node must send its leafset.
+  - Every node sends all rows in its routing table share a prefix with the
+    joining node.  This means, at the very least, every node will send it's 0th
+    row.
+- The joining node receives this state information, it then:
+  - Takes the leafset of the node with the node id closest to itself.
+  - Takes all of the relevant node information from the various routing tables,
+    these will be used to construct the routing table.
+  - For each node, its distance if measured and it is added to the Router.  The
+    Router will replace any node added to it if the added nodes distance is
+    smaller.
+- Once the Router has been constructed, all nodes are sent a copy of the joining
+  nodes state.
+- If any point in this fails, the entire process fails (future optimizations
+  include ignoring failed nodes where another equally good node could have been
+  used in its place).
 
