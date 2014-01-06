@@ -9,12 +9,19 @@ module type IO = sig
     val to_string : t -> string
   end
 
+  (* Broadcase a desire to join the cluster *)
   val announce :
     t ->
     Endpoint.t ->
-    announcer:Endpoint.t Node.t ->
-    routers:Endpoint.t Router.t list ->
+    me:Endpoint.t Node.t ->
     (Endpoint.t Msg.Announce_resp.t, unit) Deferred.Result.t
+
+  (* Have gotten an announce message, now to forward to next *)
+  val announce_forward :
+    t ->
+    Endpoint.t ->
+    Endpoint.t Msg.Announce.t ->
+    (unit, unit) Deferred.Result.t
 
   val send_state :
     t ->
