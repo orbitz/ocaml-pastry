@@ -26,56 +26,7 @@ module type APP = sig
     unit Deferred.t
 end
 
-module type IO = sig
-  type t
-
-  module Endpoint : sig
-    type t
-    val equal     : t -> t -> bool
-    val to_string : t -> string
-  end
-
-  val announce :
-    t ->
-    Endpoint.t ->
-    announcer:Endpoint.t Node.t ->
-    routers:Endpoint.t Router.t list ->
-    (Endpoint.t Msg.Announce_resp.t, unit) Deferred.Result.t
-
-  val send_state :
-    t ->
-    Endpoint.t ->
-    Endpoint.t Router.t ->
-    (unit, unit) Deferred.Result.t
-
-  val send :
-    t ->
-    Endpoint.t ->
-    Msg.Payload.t ->
-    (unit, unit) Deferred.Result.t
-
-  val ping :
-    t ->
-    Endpoint.t ->
-    (unit, unit) Deferred.Result.t
-
-  val distance :
-    t ->
-    Endpoint.t ->
-    (int, unit) Deferred.Result.t
-
-  val listen :
-    t ->
-    (Endpoint.t Msg.All.t, unit) Deferred.Result.t
-
-  val close :
-    t ->
-    unit Deferred.t
-
-end
-
-
-module Make = functor (App : APP) -> functor (Io : IO) -> struct
+module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
 
   type init_args = { node_id : Io.Endpoint.t Node.t
 		   ; app     : Io.Endpoint.t App.t
@@ -126,7 +77,8 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
     let notify_peers io router =
       let nodes = Router.nodes router in
       Deferred.List.map
-	~f:(fun n -> Io.send_state io (Node.of_t n) router)
+	~f:(fun n ->
+	  Io.send_state io (Node.of_t n) router)
 	nodes
       >>= fun res ->
       match Result.all res with
@@ -152,6 +104,16 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
 	| None ->
 	  Deferred.return (Ok router)
   end
+
+
+  let handle_incoming state = function
+    | Msg.All.Announce annc ->
+      failwith "nyi"
+    | Msg.All.Node_state nstate ->
+      failwith "nyi"
+    | _ ->
+      failwith "nyi"
+
 
   let send_incoming gs m =
     let open Deferred.Result in
@@ -185,16 +147,26 @@ module Make = functor (App : APP) -> functor (Io : IO) -> struct
 
   let handle_call _self state = function
     | Message.Route payload -> begin
+      let module S = State in
       let key = payload.Msg.Payload.key in
-      let next_route = Router.route ~k:key state.State.router in
-      Io.send state.State.io (Node.of_t next_route) payload >>= function
-	| Ok () ->
-	  Deferred.return (Gen_server.Response.Ok state)
-	| Error () ->
-	  failwith "bad mojo"
+      match Router.route ~k:key state.S.router with
+	| me when Key.compare (Node.key me) (Node.key (Router.me state.S.router)) = 0 ->
+	  failwith "nyi"
+	| next_route -> begin
+	  Io.send state.State.io (Node.of_t next_route) payload >>= function
+	    | Ok () ->
+	      Deferred.return (Gen_server.Response.Ok state)
+	    | Error () ->
+	      failwith "nyi"
+	end
     end
-    | Message.Incoming msg ->
-      Deferred.return (Resp.Ok state)
+    | Message.Incoming msg -> begin
+      handle_incoming state msg >>= function
+	| Ok state' ->
+	  Deferred.return (Resp.Ok state')
+	| Error () ->
+	  failwith "nyi"
+    end
 
   let terminate _reason state =
     Io.close state.State.io

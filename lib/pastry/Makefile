@@ -12,7 +12,7 @@ LIB_MODULES= \
 	key.ml node.ml \
 	routing_table.ml leaf_set.ml router.ml \
 	msg.ml listen_loop.ml \
-	join_protocol.ml app.ml
+	join_protocol.ml transport.ml app.ml
 
 NON_LIB_MODULES=
 
