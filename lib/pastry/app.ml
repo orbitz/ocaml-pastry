@@ -29,19 +29,19 @@ end
 module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
 
   type init_args = { node_id : Io.Endpoint.t Node.t
-		   ; app     : Io.Endpoint.t App.t
-		   ; io      : Io.t
-		   ; connect : Io.Endpoint.t option
-		   }
+                   ; app     : Io.Endpoint.t App.t
+                   ; io      : Io.t
+                   ; connect : Io.Endpoint.t option
+                   }
 
 
   module State = struct
     type t = { node_id   : Io.Endpoint.t Node.t
-	     ; timestamp : Core.Time.t
-	     ; app       : Io.Endpoint.t App.t
-	     ; io        : Io.t
-	     ; router    : Io.Endpoint.t Router.t
-	     }
+             ; timestamp : Core.Time.t
+             ; app       : Io.Endpoint.t App.t
+             ; io        : Io.t
+             ; router    : Io.Endpoint.t Router.t
+             }
   end
 
   module Message = struct
@@ -58,32 +58,32 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
   module Join = struct
     let measure_distances io nodes =
       Deferred.List.map
-	~f:(fun n ->
-	  let open Deferred.Result in
-	      Io.distance io (Node.of_t n) >>= fun distance ->
-	      Deferred.return (Ok (Node.set_distance distance n)))
-	nodes
+        ~f:(fun n ->
+          let open Deferred.Result in
+              Io.distance io (Node.of_t n) >>= fun distance ->
+              Deferred.return (Ok (Node.set_distance distance n)))
+        nodes
       >>= fun res ->
       match Result.all res with
-	| Ok nodes -> Deferred.return (Ok nodes)
-	| Error () -> Deferred.return (Error ())
+        | Ok nodes -> Deferred.return (Ok nodes)
+        | Error () -> Deferred.return (Error ())
 
     let update_router nodes_with_distance router =
       List.fold_left
-	~f:(fun r node -> Router.update ~node r)
-	~init:router
-	nodes_with_distance
+        ~f:(fun r node -> Router.update ~node r)
+        ~init:router
+        nodes_with_distance
 
     let notify_peers io router =
       let nodes = Router.nodes router in
       Deferred.List.map
-	~f:(fun n ->
-	  Io.send_state io (Node.of_t n) router)
-	nodes
+        ~f:(fun n ->
+          Io.send_state io (Node.of_t n) router)
+        nodes
       >>= fun res ->
       match Result.all res with
-	| Ok _     -> Deferred.return (Ok router)
-	| Error () -> Deferred.return (Error ())
+        | Ok _     -> Deferred.return (Ok router)
+        | Error () -> Deferred.return (Error ())
 
     let connect_to_cluster io endpoint router =
       let open Deferred.Result in
@@ -99,10 +99,10 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
      *)
     let maybe_connect io node router =
       match node with
-	| Some endpoint ->
-	  connect_to_cluster io endpoint router
-	| None ->
-	  Deferred.return (Ok router)
+        | Some endpoint ->
+          connect_to_cluster io endpoint router
+        | None ->
+          Deferred.return (Ok router)
   end
 
   (* Handlers *)
@@ -137,11 +137,11 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
    *)
   let init self init_args =
     let state = { State.node_id   = init_args.node_id
-		;       timestamp = Core.Time.now ()
-		;       app       = init_args.app
-		;       io        = init_args.io
-		;       router    = Router.create ~me:init_args.node_id ~b
-		}
+                ;       timestamp = Core.Time.now ()
+                ;       app       = init_args.app
+                ;       io        = init_args.io
+                ;       router    = Router.create ~me:init_args.node_id ~b
+                }
     in
     Join.maybe_connect
       state.State.io
@@ -149,20 +149,20 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
       state.State.router
     >>= function
       | Ok router -> begin
-	Listen_loop.run
-	  (send_incoming self)
-	  (fun () -> Io.listen state.State.io);
-	Deferred.return (Ok { state with State.router = router })
+        Listen_loop.run
+          (send_incoming self)
+          (fun () -> Io.listen state.State.io);
+        Deferred.return (Ok { state with State.router = router })
       end
       | Error () ->
-	Deferred.return (Error ())
+        Deferred.return (Error ())
 
   let handle_call _self state msg =
     handle_msg state msg >>= function
       | Ok (state', dead_nodes) ->
-	failwith "nyi"
+        failwith "nyi"
       | Error () ->
-	failwith "nyi"
+        failwith "nyi"
 
   let terminate _reason state =
     Io.close state.State.io
