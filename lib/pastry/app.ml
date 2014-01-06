@@ -112,17 +112,22 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
   let handle_node_state state nstate =
     failwith "nyi"
 
+  let handle_payload state payload =
+    failwith "nyi"
+
   let handle_incoming state = function
     | Msg.All.Announce annc ->
       handle_announce state annc
     | Msg.All.Node_state nstate ->
       handle_node_state state nstate
+    | Msg.All.Payload payload ->
+      handle_payload state payload
     | _ ->
       failwith "nyi"
 
   let handle_msg state = function
     | Message.Route payload ->
-      failwith "nyi"
+      handle_payload state payload
     | Message.Incoming msg ->
       handle_incoming state msg
 
