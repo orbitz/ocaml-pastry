@@ -113,4 +113,14 @@ A node is removed simply by finding it in the Router and deleting its entry.
 - If any point in this fails, the entire process fails (future optimizations
   include ignoring failed nodes where another equally good node could have been
   used in its place).
-
+** TODO Receiving New State
+There are two ways a node will receive state.  The first is unrequested, which
+happens when a node joins.  The second is requested, which generally happens if
+a node is trying to repair its router.
+*** Unrequested
+In the case of an unrequested state, the only aspect the node is interested in
+is the owner of the state so it can be added to the receivers Router.
+*** Requested
+In the case of requested state, the information is used to update its Router.
+This works in roughly the same way as when a node joins.  Any changes to the
+receiving nodes Router is communicated to the new nodes.
