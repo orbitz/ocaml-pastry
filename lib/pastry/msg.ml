@@ -1,5 +1,7 @@
 module Announce = struct
-  type 'a t = 'a Node.t
+  type 'a t = { announcer : 'a Node.t
+              ; routers   : 'a Router.t list
+              }
 end
 
 module Announce_resp = struct
@@ -7,7 +9,9 @@ module Announce_resp = struct
 end
 
 module Node_state = struct
-  type 'a t = 'a Router.t
+  type 'a t = { router    : 'a Router.t
+              ; timestamp : Core.Time.t
+              }
 end
 
 module Payload = struct
