@@ -21,6 +21,8 @@ let to_string = String.copy
 
 let compare = String.compare
 
+let equal = String.equal
+
 let high_half_equals c1 c2 =
   (* WILL BREAK IF WE ALLOW b OTHER THAN 4 *)
   let i1 = (Char.to_int c1) lsr 4 in
