@@ -87,7 +87,7 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
 
     let connect_to_cluster io endpoint router =
       let open Deferred.Result in
-      Io.announce io endpoint ~announcer:(Router.me router) ~routers:[] >>= fun resp ->
+      Io.announce io endpoint ~me:(Router.me router) >>= fun resp ->
       let nodes = Join_protocol.router_nodes ~me:(Router.me router) resp in
       measure_distances io nodes >>= fun nodes_with_distance ->
       let router' = update_router nodes_with_distance router in
@@ -106,8 +106,34 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
   end
 
   (* Handlers *)
+  let rec handle_announce' state annc =
+    let module MA  = Msg.Announce in
+    let module S   = State in
+    let announcer  = annc.MA.announcer in
+    let key        = Node.key announcer in
+    let routers    = annc.MA.routers in
+    match Router.route ~k:key state.S.router with
+      | me when Key.equal (Node.key me) (Node.key (Router.me state.S.router)) ->
+        (* We are the last step, send it back to announcer *)
+        failwith "nyi"
+      | next_route -> begin
+        Io.announce_forward
+          state.S.io
+          (Node.of_t next_route)
+          { annc with MA.routers = state.S.router::routers }
+        >>= function
+          | Ok () ->
+            Deferred.return []
+          | Error () -> begin
+            let router' = Router.remove ~k:(Node.key next_route) state.S.router in
+            handle_announce' { state with S.router = router' } annc >>= fun dead ->
+            Deferred.return (next_route::dead)
+          end
+      end
+
   let handle_announce state annc =
-    failwith "nyi"
+    handle_announce' state annc >>= fun dead ->
+    Deferred.return (Ok (state, dead))
 
   let handle_node_state state nstate =
     failwith "nyi"
