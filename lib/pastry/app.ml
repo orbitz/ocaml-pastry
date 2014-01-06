@@ -105,14 +105,26 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
 	  Deferred.return (Ok router)
   end
 
+  (* Handlers *)
+  let handle_announce state annc =
+    failwith "nyi"
+
+  let handle_node_state state nstate =
+    failwith "nyi"
 
   let handle_incoming state = function
     | Msg.All.Announce annc ->
-      failwith "nyi"
+      handle_announce state annc
     | Msg.All.Node_state nstate ->
-      failwith "nyi"
+      handle_node_state state nstate
     | _ ->
       failwith "nyi"
+
+  let handle_msg state = function
+    | Message.Route payload ->
+      failwith "nyi"
+    | Message.Incoming msg ->
+      handle_incoming state msg
 
 
   let send_incoming gs m =
@@ -145,28 +157,12 @@ module Make = functor (App : APP) -> functor (Io : Transport.IO) -> struct
       | Error () ->
 	Deferred.return (Error ())
 
-  let handle_call _self state = function
-    | Message.Route payload -> begin
-      let module S = State in
-      let key = payload.Msg.Payload.key in
-      match Router.route ~k:key state.S.router with
-	| me when Key.compare (Node.key me) (Node.key (Router.me state.S.router)) = 0 ->
-	  failwith "nyi"
-	| next_route -> begin
-	  Io.send state.State.io (Node.of_t next_route) payload >>= function
-	    | Ok () ->
-	      Deferred.return (Gen_server.Response.Ok state)
-	    | Error () ->
-	      failwith "nyi"
-	end
-    end
-    | Message.Incoming msg -> begin
-      handle_incoming state msg >>= function
-	| Ok state' ->
-	  Deferred.return (Resp.Ok state')
-	| Error () ->
-	  failwith "nyi"
-    end
+  let handle_call _self state msg =
+    handle_msg state msg >>= function
+      | Ok (state', dead_nodes) ->
+	failwith "nyi"
+      | Error () ->
+	failwith "nyi"
 
   let terminate _reason state =
     Io.close state.State.io
